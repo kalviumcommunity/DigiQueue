@@ -30,4 +30,6 @@ Kalvium Student | Aspiring Full-Stack Developer
 
 ## 📜 License
 
-This project is for learning and academic purposes.
+This project is for learning and academic purposes .
+
+iam razy
