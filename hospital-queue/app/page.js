@@ -1,4 +1,10 @@
 export default function Home() {
-  return <h1>Hospital Queue Management System</h1>;
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <h1 className="text-xl">
+        Hospital Digital Queue System
+      </h1>
+    </div>
+  );
 }
  
