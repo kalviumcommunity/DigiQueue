@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 
 /**
  * POST /api/tokens-next
@@ -43,6 +44,14 @@ export async function POST(request) {
     where: { id: queueId },
     data: { currentToken: nextToken.tokenNo },
   });
+
+  await redis.set(
+    `queue:${queueId}`,
+    JSON.stringify({
+      currentToken: nextToken.tokenNo,
+      status: "ACTIVE",
+    })
+  );
 
   return NextResponse.json({
     message: "Next patient called",
