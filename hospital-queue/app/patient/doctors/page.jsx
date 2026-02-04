@@ -3,17 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-interface Doctor {
-  id: string;
-  name: string;
-  specialization: string;
-  queueActive: boolean;
-}
-
 export default function DoctorsList() {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDoctors = async () => {

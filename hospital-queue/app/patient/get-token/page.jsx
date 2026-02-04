@@ -3,10 +3,6 @@
 import { useSearchParams } from 'next/navigation';
 import { useState, Suspense } from 'react';
 
-interface TokenResponse {
-  tokenNumber: string | number;
-}
-
 function GetTokenForm() {
   const searchParams = useSearchParams();
   const doctorId = searchParams.get('doctorId');
@@ -14,8 +10,8 @@ function GetTokenForm() {
   const [patientName, setPatientName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | number | null>(null);
+  const [error, setError] = useState(null);
+  const [token, setToken] = useState(null);
 
   if (!doctorId) {
     return (
@@ -25,7 +21,7 @@ function GetTokenForm() {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -48,7 +44,7 @@ function GetTokenForm() {
         throw new Error('Failed to create token');
       }
 
-      const data: TokenResponse = await response.json();
+      const data = await response.json();
       setToken(data.tokenNumber);
       setPatientName('');
       setPhoneNumber('');
@@ -98,19 +94,18 @@ function GetTokenForm() {
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="patientName" style={{ display: 'block', marginBottom: '5px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>
             Patient Name
           </label>
           <input
             type="text"
-            id="patientName"
             value={patientName}
             onChange={(e) => setPatientName(e.target.value)}
             required
             style={{
               width: '100%',
               padding: '8px',
-              border: '1px solid #ddd',
+              border: '1px solid #ccc',
               borderRadius: '4px',
               boxSizing: 'border-box',
             }}
@@ -118,19 +113,18 @@ function GetTokenForm() {
         </div>
 
         <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="phoneNumber" style={{ display: 'block', marginBottom: '5px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>
             Phone Number
           </label>
           <input
             type="tel"
-            id="phoneNumber"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             required
             style={{
               width: '100%',
               padding: '8px',
-              border: '1px solid #ddd',
+              border: '1px solid #ccc',
               borderRadius: '4px',
               boxSizing: 'border-box',
             }}
@@ -148,19 +142,19 @@ function GetTokenForm() {
             border: 'none',
             borderRadius: '4px',
             cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
+            fontWeight: 'bold',
           }}
         >
-          {loading ? 'Creating Token...' : 'Create Token'}
+          {loading ? 'Getting Token...' : 'Get Token'}
         </button>
       </form>
     </div>
   );
 }
 
-export default function GetTokenPage() {
+export default function GetToken() {
   return (
-    <Suspense fallback={<div style={{ padding: '20px' }}>Loading...</div>}>
+    <Suspense fallback={<div>Loading...</div>}>
       <GetTokenForm />
     </Suspense>
   );
