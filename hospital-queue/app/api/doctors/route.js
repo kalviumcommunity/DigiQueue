@@ -15,7 +15,16 @@ export async function GET() {
  * Add a doctor
  */
 export async function POST(request) {
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Invalid JSON body" },
+      { status: 400 }
+    );
+  }
+  
   const { name, specialization } = body;
 
   if (!name || !specialization) {

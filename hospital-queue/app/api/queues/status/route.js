@@ -1,37 +1,58 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 
 /**
  * PATCH /api/queues/status
- * Update queue status: PAUSED, ACTIVE, CLOSED
+ * Update queue status: ACTIVE | PAUSED | CLOSED
  */
 export async function PATCH(request) {
-  const body = await request.json();
-  const { queueId, status } = body;
+  try {
+    const body = await request.json();
+    const { queueId, status } = body;
 
-  if (!queueId || !status) {
+    if (!queueId || !status) {
+      return NextResponse.json(
+        { error: "queueId and status are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!["ACTIVE", "PAUSED", "CLOSED"].includes(status)) {
+      return NextResponse.json(
+        { error: "Invalid status value" },
+        { status: 400 }
+      );
+    }
+
+    // Update DB
+    const queue = await prisma.queue.update({
+      where: { id: queueId },
+      data: {
+        isActive: status === "ACTIVE",
+      },
+    });
+
+    // Get current token from DB
+    const currentToken = queue.currentToken || 0;
+
+    // Update Redis
+    await redis.set(
+      `queue:${queueId}`,
+      JSON.stringify({
+        currentToken,
+        status,
+      })
+    );
+
+    return NextResponse.json({
+      message: `Queue ${status}`,
+      queue,
+    });
+  } catch (error) {
     return NextResponse.json(
-      { error: "queueId and status required" },
-      { status: 400 }
+      { error: "Failed to update queue status" },
+      { status: 500 }
     );
   }
-
-  if (!["ACTIVE", "PAUSED", "CLOSED"].includes(status)) {
-    return NextResponse.json(
-      { error: "Invalid status" },
-      { status: 400 }
-    );
-  }
-
-  const queue = await prisma.queue.update({
-    where: { id: queueId },
-    data: {
-      isActive: status === "ACTIVE",
-    },
-  });
-
-  return NextResponse.json({
-    message: `Queue ${status}`,
-    queue,
-  });
 }
