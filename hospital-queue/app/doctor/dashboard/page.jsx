@@ -96,8 +96,7 @@ export default function DoctorDashboard() {
 
   return (
     <div style={{ padding: "32px 24px", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif", maxWidth: "1100px", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "36px", fontWeight: "700", marginBottom: "12px", color: "#000000" }}>Doctor Dashboard</h1>
-      <p style={{ color: "#22c55e", fontSize: "15px", fontWeight: "500", marginBottom: "28px" }}>✅ DASHBOARD LOADED - Day 5 Implementation</p>
+      <h1 style={{ fontSize: "36px", fontWeight: "700", marginBottom: "12px", color: "#ffffff" }}>Doctor Dashboard</h1>
 
       {/* Status Message */}
       {statusMessage && (
@@ -298,9 +297,6 @@ export default function DoctorDashboard() {
             {isMarkingDone ? "Processing..." : "Mark Done"}
           </button>
         </div>
-        <p style={{ fontSize: "14px", color: "#9ca3af", marginTop: "20px", fontWeight: "500" }}>
-          * API integration coming in Day 6
-        </p>
       </div>
     </div>
   );
