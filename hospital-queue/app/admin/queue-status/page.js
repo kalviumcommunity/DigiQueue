@@ -1,20 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
 
 export default function QueueStatus() {
   const [queue, setQueue] = useState(null);
   const [tokens, setTokens] = useState([]);
 
   useEffect(() => {
-    const storedQueue = JSON.parse(localStorage.getItem("activeQueue"));
-    const storedTokens = JSON.parse(localStorage.getItem("tokens")) || [];
+    async function fetchQueue() {
+      try {
+        const doctorId = localStorage.getItem("activeDoctorId");
 
-    setQueue(storedQueue);
-    setTokens(storedTokens);
+        if (!doctorId) {
+          setQueue(null);
+          return;
+        }
+
+        const res = await fetch(`/api/queue/status?doctorId=${doctorId}`);
+
+        if (!res.ok) {
+          setQueue(null);
+          return;
+        }
+
+        const data = await res.json();
+        setQueue(data.queue);
+        setTokens(data.tokens || []);
+      } catch (err) {
+        setQueue(null);
+      }
+    }
+
+    fetchQueue();
   }, []);
 
-  if (!queue || !queue.isActive) {
+  if (!queue) {
     return <p className="p-6">No active queue.</p>;
   }
 

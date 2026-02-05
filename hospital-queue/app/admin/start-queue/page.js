@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiRequest } from "@/lib/api";
 
 export default function StartQueue() {
   const [doctors, setDoctors] = useState([]);
@@ -9,20 +10,18 @@ export default function StartQueue() {
   const router = useRouter();
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("doctors")) || [];
-    setDoctors(stored);
+    apiRequest("/api/doctors")
+      .then(setDoctors)
+      .catch(() => alert("Failed to load doctors"));
   }, []);
 
-  const handleStartQueue = () => {
-    if (!selectedDoctor) return alert("Select a doctor");
+  const handleStartQueue = async () => {
+    if (!selectedDoctor) return alert("Select doctor");
 
-    const queue = {
+    await apiRequest("/api/queues", "POST", {
       doctorId: selectedDoctor,
-      currentToken: 1,
-      isActive: true,
-    };
+    });
 
-    localStorage.setItem("activeQueue", JSON.stringify(queue));
     router.push("/admin/queue-status");
   };
 
