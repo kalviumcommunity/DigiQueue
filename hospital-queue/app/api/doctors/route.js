@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { store } from "@/lib/store";
 
 /**
  * GET /api/doctors
  * List all doctors
  */
 export async function GET() {
-  const doctors = await prisma.doctor.findMany();
-  return NextResponse.json(doctors);
+  return NextResponse.json(store.doctors);
 }
 
 /**
@@ -24,7 +23,7 @@ export async function POST(request) {
       { status: 400 }
     );
   }
-  
+
   const { name, specialization } = body;
 
   if (!name || !specialization) {
@@ -34,9 +33,12 @@ export async function POST(request) {
     );
   }
 
-  const doctor = await prisma.doctor.create({
-    data: { name, specialization },
-  });
+  const doctor = {
+    id: Date.now(),
+    name,
+    specialization,
+  };
 
+  store.doctors.push(doctor);
   return NextResponse.json(doctor, { status: 201 });
 }

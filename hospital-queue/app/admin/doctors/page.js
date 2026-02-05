@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
 
 export default function DoctorsList() {
   const [doctors, setDoctors] = useState([]);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("doctors")) || [];
-    setDoctors(stored);
+    apiRequest("/api/doctors")
+      .then(setDoctors)
+      .catch(() => alert("Failed to load doctors"));
   }, []);
 
   return (

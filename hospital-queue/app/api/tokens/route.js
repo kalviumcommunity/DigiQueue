@@ -1,71 +1,48 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { store } from "@/lib/store";
 
 /**
  * POST /api/tokens
- * Create a new token for a queue
+ * Create a new token
  */
 export async function POST(request) {
-  const body = await request.json();
-  const { queueId, patientName, phone } = body;
-
-  if (!queueId || !patientName) {
+  let body;
+  try {
+    body = await request.json();
+  } catch (error) {
     return NextResponse.json(
-      { error: "queueId and patientName required" },
+      { error: "Invalid JSON body" },
       { status: 400 }
     );
   }
 
-  const queue = await prisma.queue.findUnique({
-    where: { id: queueId },
-  });
+  const { patientName, phone } = body;
 
-  if (!queue || !queue.isActive) {
+  if (!patientName) {
     return NextResponse.json(
-      { error: "Queue is not active" },
+      { error: "patientName required" },
       { status: 400 }
     );
   }
 
-  // Find last token number
-  const lastToken = await prisma.token.findFirst({
-    where: { queueId },
-    orderBy: { tokenNo: "desc" },
-  });
+  const tokenNumber = store.tokens.length + 1;
 
-  const nextTokenNo = lastToken ? lastToken.tokenNo + 1 : 1;
+  const token = {
+    tokenNumber,
+    patientName,
+    phone: phone || "",
+    status: "waiting",
+    createdAt: new Date(),
+  };
 
-  const token = await prisma.token.create({
-    data: {
-      queueId,
-      tokenNo: nextTokenNo,
-      patientName,
-      phone,
-    },
-  });
-
+  store.tokens.push(token);
   return NextResponse.json(token, { status: 201 });
 }
 
 /**
- * GET /api/tokens?queueId=1
- * Get all tokens for a queue
+ * GET /api/tokens
+ * Get all tokens
  */
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const queueId = Number(searchParams.get("queueId"));
-
-  if (!queueId) {
-    return NextResponse.json(
-      { error: "queueId query param required" },
-      { status: 400 }
-    );
-  }
-
-  const tokens = await prisma.token.findMany({
-    where: { queueId },
-    orderBy: { tokenNo: "asc" },
-  });
-
-  return NextResponse.json(tokens);
+export async function GET() {
+  return NextResponse.json(store.tokens);
 }

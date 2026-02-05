@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
 
 export default function CreateToken() {
   const [queue, setQueue] = useState(null);
@@ -9,32 +10,20 @@ export default function CreateToken() {
   const [generatedToken, setGeneratedToken] = useState(null);
 
   useEffect(() => {
-    const storedQueue = JSON.parse(localStorage.getItem("activeQueue"));
-    setQueue(storedQueue);
+    apiRequest("/api/queue/status")
+      .then((data) => setQueue(data.queue))
+      .catch(() => alert("Queue not started"));
   }, []);
 
-  const handleCreateToken = () => {
-    if (!queue || !queue.isActive) {
-      return alert("Queue not started");
-    }
+  const handleCreateToken = async () => {
+    if (!patientName) return alert("Enter patient name");
 
-    const tokens = JSON.parse(localStorage.getItem("tokens")) || [];
-
-    const newTokenNumber = tokens.length + 1;
-
-    const newToken = {
-      tokenNumber: newTokenNumber,
+    const res = await apiRequest("/api/tokens", "POST", {
       patientName,
       phone,
-      status: "waiting",
-    };
+    });
 
-    localStorage.setItem(
-      "tokens",
-      JSON.stringify([...tokens, newToken])
-    );
-
-    setGeneratedToken(newTokenNumber);
+    setGeneratedToken(res.tokenNumber);
   };
 
   if (!queue || !queue.isActive) {

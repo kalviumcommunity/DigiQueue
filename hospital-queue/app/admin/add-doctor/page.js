@@ -2,26 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiRequest } from "@/lib/api";
 
 export default function AddDoctor() {
   const [name, setName] = useState("");
   const [specialization, setSpecialization] = useState("");
   const router = useRouter();
 
-  const handleAddDoctor = () => {
-    // TEMP: store in localStorage
-    const existing = JSON.parse(localStorage.getItem("doctors")) || [];
+  const handleAddDoctor = async () => {
+    if (!name || !specialization) return alert("Fill all fields");
 
-    const newDoctor = {
-      id: Date.now(),
+    await apiRequest("/api/doctors", "POST", {
       name,
       specialization,
-    };
-
-    localStorage.setItem(
-      "doctors",
-      JSON.stringify([...existing, newDoctor])
-    );
+    });
 
     router.push("/admin/doctors");
   };
