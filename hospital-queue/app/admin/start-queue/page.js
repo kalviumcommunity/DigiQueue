@@ -18,9 +18,14 @@ export default function StartQueue() {
   const handleStartQueue = async () => {
     if (!selectedDoctor) return alert("Select doctor");
 
-    await apiRequest("/api/queues", "POST", {
+    const queue = await apiRequest("/api/queues", "POST", {
       doctorId: selectedDoctor,
     });
+
+    localStorage.setItem("activeDoctorId", String(selectedDoctor));
+    if (queue?.id) {
+      localStorage.setItem("activeQueueId", String(queue.id));
+    }
 
     router.push("/admin/queue-status");
   };

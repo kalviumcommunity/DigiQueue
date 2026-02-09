@@ -17,6 +17,30 @@ export async function POST(request) {
     );
   }
 
+  const queue = await prisma.queue.findUnique({
+    where: { id: queueId },
+  });
+
+  if (!queue) {
+    return NextResponse.json(
+      { error: "Queue not found" },
+      { status: 404 }
+    );
+  }
+
+  if (queue.currentToken) {
+    const currentToken = await prisma.token.findFirst({
+      where: { queueId, tokenNo: queue.currentToken },
+    });
+
+    if (currentToken && currentToken.status !== "DONE") {
+      await prisma.token.update({
+        where: { id: currentToken.id },
+        data: { status: "DONE" },
+      });
+    }
+  }
+
   // Find next waiting token
   const nextToken = await prisma.token.findFirst({
     where: {
@@ -33,10 +57,10 @@ export async function POST(request) {
     );
   }
 
-  // Mark token as DONE
+  // Mark token as IN_PROGRESS
   await prisma.token.update({
     where: { id: nextToken.id },
-    data: { status: "DONE" },
+    data: { status: "IN_PROGRESS" },
   });
 
   // Update queue current token
