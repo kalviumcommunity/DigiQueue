@@ -1,34 +1,84 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-// Mock patient data for queue preview
-const mockQueue = [
-  { id: 1, tokenNumber: 1, patientName: "Ahmed Hassan", reason: "General Checkup" },
-  { id: 2, tokenNumber: 2, patientName: "Fatima Ahmed", reason: "Follow-up" },
-  { id: 3, tokenNumber: 3, patientName: "Mohammad Ali", reason: "Consultation" },
-  { id: 4, tokenNumber: 4, patientName: "Sara Johnson", reason: "Lab Results" },
-  { id: 5, tokenNumber: 5, patientName: "Omar Ibrahim", reason: "Prescription" },
-];
+import { useCallback, useEffect, useState } from "react";
 
 export default function DoctorDashboard() {
+  const [doctorId, setDoctorId] = useState(null);
+  const [queue, setQueue] = useState(null);
+  const [tokens, setTokens] = useState([]);
   const [currentPatient, setCurrentPatient] = useState(null);
-  const [queue, setQueue] = useState(mockQueue);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState(""); // "success" or "error"
   const [isCallingNext, setIsCallingNext] = useState(false);
   const [isMarkingDone, setIsMarkingDone] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Simulate async operation
-  const simulateAsync = async () => {
-    await new Promise((r) => setTimeout(r, 600));
-  };
+  const refreshData = useCallback(async () => {
+    if (!doctorId) return;
+
+    try {
+      setLoading(true);
+      const queueRes = await fetch(`/api/queues?doctorId=${doctorId}`);
+      if (!queueRes.ok) {
+        setQueue(null);
+        setTokens([]);
+        setCurrentPatient(null);
+        return;
+      }
+
+      const queueData = await queueRes.json();
+      setQueue(queueData);
+
+      if (!queueData?.id) {
+        setTokens([]);
+        setCurrentPatient(null);
+        return;
+      }
+
+      const tokensRes = await fetch(`/api/tokens?queueId=${queueData.id}`);
+      const tokensData = tokensRes.ok ? await tokensRes.json() : [];
+      setTokens(tokensData || []);
+
+      if (queueData.currentToken) {
+        const currentToken = (tokensData || []).find(
+          (token) => token.tokenNo === queueData.currentToken
+        );
+        setCurrentPatient(currentToken || null);
+      } else {
+        setCurrentPatient(null);
+      }
+    } catch (err) {
+      setQueue(null);
+      setTokens([]);
+      setCurrentPatient(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [doctorId]);
+
+  useEffect(() => {
+    const storedDoctorId = localStorage.getItem("activeDoctorId");
+    if (!storedDoctorId) {
+      setLoading(false);
+      return;
+    }
+    setDoctorId(storedDoctorId);
+  }, []);
+
+  useEffect(() => {
+    if (!doctorId) return;
+    refreshData();
+    const interval = setInterval(refreshData, 5000);
+    return () => clearInterval(interval);
+  }, [doctorId, refreshData]);
 
   // Call Next Patient
   const callNext = async () => {
     if (isCallingNext || isMarkingDone) return;
 
-    if (queue.length === 0) {
+    const waitingTokens = tokens.filter((token) => token.status === "WAITING");
+
+    if (!queue?.id || waitingTokens.length === 0) {
       setStatusMessage("Queue is empty");
       setStatusType("error");
       return;
@@ -38,21 +88,27 @@ export default function DoctorDashboard() {
       setIsCallingNext(true);
       setStatusMessage("");
 
-      // Simulate API call
-      await simulateAsync();
+      const res = await fetch("/api/tokens-next", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ queueId: queue.id }),
+      });
 
-      // Move first patient from queue to current
-      const nextPatient = queue[0];
-      setCurrentPatient(nextPatient);
-      setQueue((prev) => prev.slice(1));
-      setStatusMessage(`Calling token ${nextPatient.tokenNumber}`);
-      setStatusType("success");
+      const data = await res.json();
 
-      // Day 6: Replace with actual API call
-      // const res = await fetch('/api/doctor/call-next', { method: 'POST' });
-      // const data = await res.json();
-      // setCurrentPatient(data.currentPatient);
-      // setQueue(data.queue);
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to call next patient");
+      }
+
+      if (data?.message === "No waiting patients") {
+        setStatusMessage("Queue is empty");
+        setStatusType("error");
+      } else {
+        setStatusMessage(`Calling token ${data.currentToken}`);
+        setStatusType("success");
+      }
+
+      await refreshData();
     } catch (err) {
       setStatusMessage("Failed to call next patient");
       setStatusType("error");
@@ -75,17 +131,25 @@ export default function DoctorDashboard() {
       setIsMarkingDone(true);
       setStatusMessage("");
 
-      // Simulate API call
-      await simulateAsync();
+      const res = await fetch("/api/tokens", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          queueId: queue?.id,
+          tokenNo: currentPatient.tokenNo,
+          status: "DONE",
+        }),
+      });
 
-      setCurrentPatient(null);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to mark done");
+      }
+
       setStatusMessage("Marked done");
       setStatusType("success");
-
-      // Day 6: Replace with actual API call
-      // const res = await fetch('/api/doctor/mark-done', { method: 'POST' });
-      // const data = await res.json();
-      // setCurrentPatient(null);
+      await refreshData();
     } catch (err) {
       setStatusMessage("Failed to mark patient as done");
       setStatusType("error");
@@ -120,6 +184,24 @@ export default function DoctorDashboard() {
         </div>
       )}
 
+      {loading && (
+        <div style={{ marginBottom: "16px", color: "#e5e7eb" }}>
+          Loading queue...
+        </div>
+      )}
+
+      {!loading && !doctorId && (
+        <div style={{ marginBottom: "16px", color: "#fca5a5" }}>
+          Doctor ID not found. Please log in again.
+        </div>
+      )}
+
+      {!loading && doctorId && !queue && (
+        <div style={{ marginBottom: "16px", color: "#fca5a5" }}>
+          No active queue for this doctor.
+        </div>
+      )}
+
       {/* Current Patient Panel */}
       <div
         style={{
@@ -137,15 +219,17 @@ export default function DoctorDashboard() {
           <div style={{ display: "grid", gap: "14px" }}>
             <div style={{ backgroundColor: "#f3f4f6", padding: "16px", borderRadius: "8px", borderLeft: "4px solid #3b82f6" }}>
               <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "4px" }}>Token Number</p>
-              <p style={{ fontSize: "24px", fontWeight: "700", color: "#1f2937" }}>{currentPatient.tokenNumber}</p>
+              <p style={{ fontSize: "24px", fontWeight: "700", color: "#1f2937" }}>{currentPatient.tokenNo}</p>
             </div>
             <div style={{ backgroundColor: "#f3f4f6", padding: "16px", borderRadius: "8px", borderLeft: "4px solid #3b82f6" }}>
               <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "4px" }}>Patient Name</p>
               <p style={{ fontSize: "18px", fontWeight: "600", color: "#1f2937" }}>{currentPatient.patientName}</p>
             </div>
             <div style={{ backgroundColor: "#f3f4f6", padding: "16px", borderRadius: "8px", borderLeft: "4px solid #3b82f6" }}>
-              <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "4px" }}>Reason for Visit</p>
-              <p style={{ fontSize: "16px", color: "#1f2937", fontWeight: "500" }}>{currentPatient.reason}</p>
+              <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "4px" }}>Phone</p>
+              <p style={{ fontSize: "16px", color: "#1f2937", fontWeight: "500" }}>
+                {currentPatient.phone || "N/A"}
+              </p>
             </div>
           </div>
         ) : (
@@ -165,7 +249,7 @@ export default function DoctorDashboard() {
         }}
       >
         <h2 style={{ fontSize: "22px", fontWeight: "600", marginBottom: "20px", color: "#1f2937" }}>Queue Preview (Next 5)</h2>
-        {queue.length === 0 ? (
+        {tokens.filter((token) => token.status === "WAITING").length === 0 ? (
           <p style={{ color: "#9ca3af", fontSize: "16px", padding: "20px", textAlign: "center", backgroundColor: "#f9fafb", borderRadius: "8px" }}>Queue is empty</p>
         ) : (
           <table
@@ -181,11 +265,13 @@ export default function DoctorDashboard() {
                 <th style={{ textAlign: "left", padding: "14px 12px", fontWeight: "600", color: "#374151", fontSize: "14px" }}>Position</th>
                 <th style={{ textAlign: "left", padding: "14px 12px", fontWeight: "600", color: "#374151", fontSize: "14px" }}>Token</th>
                 <th style={{ textAlign: "left", padding: "14px 12px", fontWeight: "600", color: "#374151", fontSize: "14px" }}>Name</th>
-                <th style={{ textAlign: "left", padding: "14px 12px", fontWeight: "600", color: "#374151", fontSize: "14px" }}>Reason</th>
+                <th style={{ textAlign: "left", padding: "14px 12px", fontWeight: "600", color: "#374151", fontSize: "14px" }}>Phone</th>
               </tr>
             </thead>
             <tbody>
-              {queue.map((patient, index) => (
+              {tokens
+                .filter((token) => token.status === "WAITING")
+                .map((patient, index) => (
                 <tr
                   key={patient.id}
                   style={{
@@ -195,9 +281,9 @@ export default function DoctorDashboard() {
                   }}
                 >
                   <td style={{ padding: "14px 12px", color: "#1f2937", fontWeight: "500" }}>{index + 1}</td>
-                  <td style={{ padding: "14px 12px", color: "#1f2937", fontWeight: "600" }}>#{patient.tokenNumber}</td>
+                  <td style={{ padding: "14px 12px", color: "#1f2937", fontWeight: "600" }}>#{patient.tokenNo}</td>
                   <td style={{ padding: "14px 12px", color: "#1f2937", fontWeight: "500" }}>{patient.patientName}</td>
-                  <td style={{ padding: "14px 12px", color: "#6b7280" }}>{patient.reason}</td>
+                  <td style={{ padding: "14px 12px", color: "#6b7280" }}>{patient.phone || "N/A"}</td>
                 </tr>
               ))}
             </tbody>
@@ -219,35 +305,35 @@ export default function DoctorDashboard() {
         <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
           <button
             onClick={callNext}
-            disabled={isCallingNext || isMarkingDone || queue.length === 0}
+            disabled={isCallingNext || isMarkingDone || !queue?.id}
             style={{
               padding: "14px 32px",
               fontSize: "16px",
               fontWeight: "600",
               backgroundColor:
-                isCallingNext || isMarkingDone || queue.length === 0
+                isCallingNext || isMarkingDone || !queue?.id
                   ? "#d1d5db"
                   : "#16a34a",
-              color: isCallingNext || isMarkingDone || queue.length === 0 ? "#6b7280" : "white",
+              color: isCallingNext || isMarkingDone || !queue?.id ? "#6b7280" : "white",
               border: "none",
               borderRadius: "8px",
               cursor:
-                isCallingNext || isMarkingDone || queue.length === 0
+                isCallingNext || isMarkingDone || !queue?.id
                   ? "not-allowed"
                   : "pointer",
               transition: "all 0.2s ease",
-              boxShadow: isCallingNext || isMarkingDone || queue.length === 0 ? "none" : "0 2px 6px rgba(22, 163, 74, 0.2)",
-              opacity: isCallingNext || isMarkingDone || queue.length === 0 ? 0.6 : 1
+              boxShadow: isCallingNext || isMarkingDone || !queue?.id ? "none" : "0 2px 6px rgba(22, 163, 74, 0.2)",
+              opacity: isCallingNext || isMarkingDone || !queue?.id ? 0.6 : 1
             }}
             onMouseEnter={(e) => {
-              if (!(isCallingNext || isMarkingDone || queue.length === 0)) {
+              if (!(isCallingNext || isMarkingDone || !queue?.id)) {
                 e.target.style.backgroundColor = "#15803d";
                 e.target.style.transform = "translateY(-2px)";
                 e.target.style.boxShadow = "0 4px 12px rgba(22, 163, 74, 0.3)";
               }
             }}
             onMouseLeave={(e) => {
-              if (!(isCallingNext || isMarkingDone || queue.length === 0)) {
+              if (!(isCallingNext || isMarkingDone || !queue?.id)) {
                 e.target.style.backgroundColor = "#16a34a";
                 e.target.style.transform = "translateY(0)";
                 e.target.style.boxShadow = "0 2px 6px rgba(22, 163, 74, 0.2)";

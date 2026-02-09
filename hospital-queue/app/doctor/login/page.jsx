@@ -20,6 +20,7 @@ export default function DoctorLoginPage() {
 
     // Simple validation (no real auth yet)
     if (doctorId.trim() && password.trim()) {
+      localStorage.setItem('activeDoctorId', doctorId.trim());
       router.push('/doctor/dashboard');
     } else {
       setError('Invalid credentials');

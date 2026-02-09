@@ -14,25 +14,38 @@ export default function QueueStatus() {
 
         if (!doctorId) {
           setQueue(null);
+          setTokens([]);
           return;
         }
 
-        const res = await fetch(`/api/queue/status?doctorId=${doctorId}`);
+        const activeQueue = await apiRequest(
+          `/api/queues?doctorId=${doctorId}`
+        );
 
-        if (!res.ok) {
+        if (!activeQueue) {
           setQueue(null);
+          setTokens([]);
           return;
         }
 
-        const data = await res.json();
-        setQueue(data.queue);
-        setTokens(data.tokens || []);
+        setQueue(activeQueue);
+
+        const allTokens = await apiRequest(
+          `/api/tokens?queueId=${activeQueue.id}`
+        );
+        const waitingTokens = (allTokens || []).filter(
+          (token) => token.status === "WAITING"
+        );
+        setTokens(waitingTokens);
       } catch (err) {
         setQueue(null);
+        setTokens([]);
       }
     }
 
     fetchQueue();
+    const interval = setInterval(fetchQueue, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   if (!queue) {

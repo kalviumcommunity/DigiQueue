@@ -8,23 +8,38 @@ export default function CreateToken() {
   const [patientName, setPatientName] = useState("");
   const [phone, setPhone] = useState("");
   const [generatedToken, setGeneratedToken] = useState(null);
+  const [doctorId, setDoctorId] = useState(null);
 
   useEffect(() => {
-    apiRequest("/api/queue/status")
-      .then((data) => setQueue(data.queue))
+    const storedDoctorId = localStorage.getItem("activeDoctorId");
+    setDoctorId(storedDoctorId);
+
+    if (!storedDoctorId) {
+      setQueue(null);
+      return;
+    }
+
+    apiRequest(`/api/queues?doctorId=${storedDoctorId}`)
+      .then((data) => setQueue(data))
       .catch(() => alert("Queue not started"));
   }, []);
 
   const handleCreateToken = async () => {
     if (!patientName) return alert("Enter patient name");
+    if (!queue?.id) return alert("Queue not started");
 
     const res = await apiRequest("/api/tokens", "POST", {
+      queueId: queue.id,
       patientName,
       phone,
     });
 
-    setGeneratedToken(res.tokenNumber);
+    setGeneratedToken(res.tokenNo);
   };
+
+  if (!doctorId) {
+    return <p className="p-6">Select a doctor and start a queue first.</p>;
+  }
 
   if (!queue || !queue.isActive) {
     return <p className="p-6">Start the queue first.</p>;

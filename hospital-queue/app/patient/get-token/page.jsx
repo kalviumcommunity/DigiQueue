@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
 function GetTokenForm() {
   const searchParams = useSearchParams();
@@ -12,6 +12,8 @@ function GetTokenForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
+  const [queue, setQueue] = useState(null);
+  const [queueLoading, setQueueLoading] = useState(true);
 
   if (!doctorId) {
     return (
@@ -21,6 +23,40 @@ function GetTokenForm() {
     );
   }
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchQueue = async () => {
+      try {
+        setQueueLoading(true);
+        const res = await fetch(`/api/queues?doctorId=${doctorId}`);
+        if (!res.ok) {
+          throw new Error('Queue not found');
+        }
+        const data = await res.json();
+        if (isMounted) {
+          setQueue(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setQueue(null);
+        }
+      } finally {
+        if (isMounted) {
+          setQueueLoading(false);
+        }
+      }
+    };
+
+    if (doctorId) {
+      fetchQueue();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [doctorId]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -28,15 +64,19 @@ function GetTokenForm() {
     setToken(null);
 
     try {
+      if (!queue?.id || !queue.isActive) {
+        throw new Error('Queue is not active for this doctor');
+      }
+
       const response = await fetch('/api/tokens', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          doctorId,
+          queueId: queue.id,
           patientName,
-          phoneNumber,
+          phone: phoneNumber,
         }),
       });
 
@@ -45,7 +85,7 @@ function GetTokenForm() {
       }
 
       const data = await response.json();
-      setToken(data.tokenNumber);
+      setToken(data.tokenNo);
       setPatientName('');
       setPhoneNumber('');
     } catch (err) {
@@ -58,6 +98,23 @@ function GetTokenForm() {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '500px' }}>
       <h1>Get Your Token</h1>
+
+      {queueLoading ? (
+        <div style={{ marginBottom: '20px' }}>Checking queue...</div>
+      ) : !queue?.isActive ? (
+        <div
+          style={{
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffeeba',
+            color: '#856404',
+            padding: '15px',
+            borderRadius: '5px',
+            marginBottom: '20px',
+          }}
+        >
+          Queue is not active for this doctor.
+        </div>
+      ) : null}
 
       {token && (
         <div
