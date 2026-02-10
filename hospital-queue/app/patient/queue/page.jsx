@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 export default function PatientQueuePage() {
   const searchParams = useSearchParams();
@@ -12,17 +13,31 @@ export default function PatientQueuePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [queueId, setQueueId] = useState(null);
+  const [resolvedDoctorId, setResolvedDoctorId] = useState(null);
+  const [savedToken, setSavedToken] = useState(null);
 
-  if (!doctorId) {
-    return <p>Doctor ID not found. Please select a doctor first.</p>;
-  }
+  useEffect(() => {
+    const parsed = Number(doctorId);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setResolvedDoctorId(parsed);
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      const storedDoctor = Number(localStorage.getItem('patientDoctorId'));
+      setResolvedDoctorId(Number.isFinite(storedDoctor) ? storedDoctor : null);
+      const tokenNo = Number(localStorage.getItem('patientTokenNo'));
+      setSavedToken(Number.isFinite(tokenNo) && tokenNo > 0 ? tokenNo : null);
+    }
+  }, [doctorId]);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchQueue = async () => {
       try {
-        const res = await fetch(`/api/queues?doctorId=${doctorId}`);
+        if (!resolvedDoctorId) return;
+        const res = await fetch(`/api/queues?doctorId=${resolvedDoctorId}`);
         if (!res.ok) {
           throw new Error('Queue not found');
         }
@@ -37,12 +52,14 @@ export default function PatientQueuePage() {
       }
     };
 
-    fetchQueue();
+    if (resolvedDoctorId) {
+      fetchQueue();
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [doctorId]);
+  }, [resolvedDoctorId]);
 
   useEffect(() => {
     if (!queueId) {
@@ -80,15 +97,50 @@ export default function PatientQueuePage() {
     return () => clearInterval(interval);
   }, [queueId]);
 
-  if (loading) return <p>Loading queue status...</p>;
-  if (error) return <p>{error}</p>;
-  if (currentToken === null) return <p>No queue data available</p>;
+  if (!resolvedDoctorId) {
+    return (
+      <section className="card">
+        <h2>No doctor selected</h2>
+        <p>Select a doctor on the dashboard to view live queue status.</p>
+        <Link className="btn btn-primary" href="/patient/dashboard">
+          Go to Dashboard
+        </Link>
+      </section>
+    );
+  }
+
+  if (loading) return <div className="alert alert-info">Loading queue status...</div>;
+  if (error) return <div className="alert alert-warn">{error}</div>;
+  if (currentToken === null) return <div className="alert alert-warn">No queue data available</div>;
 
   return (
     <div>
-      <h1>Patient Queue Status</h1>
-      <p>Now Serving Token: {currentToken}</p>
-      <p>Queue Active: {queueActive ? 'Yes' : 'No'}</p>
+      <section className="page-hero">
+        <h1>Live Queue</h1>
+        <p>Keep an eye on the queue in real time.</p>
+        <div>
+          <Link className="btn btn-ghost" href="/patient/dashboard">
+            Back to Dashboard
+          </Link>
+        </div>
+      </section>
+
+      <section className="card">
+        <h2>Queue Status</h2>
+        <div className="queue-meta">
+          <span>
+            <strong>Now Serving:</strong> {currentToken}
+          </span>
+          <span>
+            <strong>Queue Active:</strong> {queueActive ? 'Yes' : 'No'}
+          </span>
+          {savedToken ? (
+            <span>
+              <strong>Your Token:</strong> {savedToken}
+            </span>
+          ) : null}
+        </div>
+      </section>
     </div>
   );
 }
