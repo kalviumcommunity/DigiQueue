@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function DoctorDashboard() {
   const [doctorId, setDoctorId] = useState(null);
+  const [doctorName, setDoctorName] = useState(null);
   const [queue, setQueue] = useState(null);
   const [tokens, setTokens] = useState([]);
   const [currentPatient, setCurrentPatient] = useState(null);
@@ -12,6 +14,7 @@ export default function DoctorDashboard() {
   const [isCallingNext, setIsCallingNext] = useState(false);
   const [isMarkingDone, setIsMarkingDone] = useState(false);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const refreshData = useCallback(async () => {
     if (!doctorId) return;
@@ -57,13 +60,19 @@ export default function DoctorDashboard() {
   }, [doctorId]);
 
   useEffect(() => {
-    const storedDoctorId = localStorage.getItem("activeDoctorId");
+    // Get doctor info from localStorage (set by login page)
+    const storedDoctorId = localStorage.getItem("doctorId");
+    const storedDoctorName = localStorage.getItem("doctorName");
+    
     if (!storedDoctorId) {
       setLoading(false);
+      router.push("/doctor/login");
       return;
     }
-    setDoctorId(storedDoctorId);
-  }, []);
+    
+    setDoctorId(parseInt(storedDoctorId));
+    setDoctorName(storedDoctorName || "Doctor");
+  }, [router]);
 
   useEffect(() => {
     if (!doctorId) return;
@@ -71,6 +80,13 @@ export default function DoctorDashboard() {
     const interval = setInterval(refreshData, 5000);
     return () => clearInterval(interval);
   }, [doctorId, refreshData]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("doctorId");
+    localStorage.removeItem("doctorName");
+    localStorage.removeItem("doctorUserId");
+    router.push("/doctor/login");
+  };
 
   // Call Next Patient
   const callNext = async () => {
@@ -160,7 +176,36 @@ export default function DoctorDashboard() {
 
   return (
     <div style={{ padding: "32px 24px", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif", maxWidth: "1100px", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "36px", fontWeight: "700", marginBottom: "12px", color: "#ffffff" }}>Doctor Dashboard</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+        <div>
+          <h1 style={{ fontSize: "36px", fontWeight: "700", marginBottom: "4px", color: "#1f2937" }}>Doctor Dashboard</h1>
+          {doctorName && <p style={{ fontSize: "14px", color: "#6b7280" }}>Welcome, {doctorName}</p>}
+        </div>
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: "10px 20px",
+            fontSize: "14px",
+            fontWeight: "600",
+            backgroundColor: "#ef4444",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            transition: "all 0.2s ease"
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = "#dc2626";
+            e.target.style.transform = "translateY(-2px)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = "#ef4444";
+            e.target.style.transform = "translateY(0)";
+          }}
+        >
+          Logout
+        </button>
+      </div>
 
       {/* Status Message */}
       {statusMessage && (

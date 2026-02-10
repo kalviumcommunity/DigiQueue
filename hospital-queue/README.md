@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏥 Hospital Digital Queue Management System
 
-## Getting Started
+## 📌 Project Overview
 
-First, run the development server:
+In many Tier-2 and Tier-3 cities, hospital outpatient departments still rely on physical queues, paper tokens, and manual calling of patients. This leads to overcrowding, long waiting times, and confusion for both patients and hospital staff.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+This project is a lightweight digital queue management system built for individual hospitals to manage patient flow efficiently without expensive hardware or infrastructure.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The system allows hospitals to:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Digitally issue tokens
+- Manage live queues per doctor
+- Reduce crowding at reception areas
+- Give patients visibility into queue status
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ❓ Why This Project?
 
-## Learn More
+Problems with Current System
 
-To learn more about Next.js, take a look at the following resources:
+- Patients must stand in physical queues
+- No visibility of waiting time
+- Overcrowding at hospitals
+- Manual token handling by reception
+- Doctors call patients verbally, causing confusion
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Challenges in Tier-2/3 Cities
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- High patient volume
+- Limited budget for digital infrastructure
+- Low adoption of complex hospital software
 
-## Deploy on Vercel
+## 💡 Our Solution
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+We provide a simple web-based platform that can be deployed separately for each hospital.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Key Ideas
+
+- One website per hospital
+- Hospital manages its own doctors
+- Reception handles token generation
+- Patients can check live queue from home
+- No QR scanners or expensive devices required
+
+## ⚙️ How the System Works
+
+1️⃣ Hospital Admin / Reception
+
+- Logs into the dashboard
+- Adds doctors
+- Starts queue for a selected doctor
+- Generates tokens for walk-in patients
+- Views live queue status
+
+2️⃣ Doctor
+
+- Sees current token
+- Calls next patient
+- Marks patient as completed
+
+3️⃣ Patient
+
+- Gets token from reception or online
+- Can check live queue status
+- Arrives at hospital closer to their turn
+
+## 🧭 Platform Flow
+
+Hospital Admin
+	↓
+Adds Doctors
+	↓
+Starts Queue for Doctor
+	↓
+Reception Creates Tokens
+	↓
+Doctor Calls Next Patient
+	↓
+Patients Track Queue Live
+
+## 📊 Dashboards Included
+
+Dashboard	Purpose
+Admin / Reception Dashboard	Manage doctors, queues, and tokens
+Doctor Dashboard	Call and complete patients
+Patient View	See live token number and waiting count
+
+## 🛠️ Technology Stack
+
+Frontend
+
+Next.js (React-based full-stack framework)
+
+Backend
+
+Next.js API Routes
+
+Database
+
+PostgreSQL
+
+ORM
+
+Prisma
+
+Caching
+
+Redis (for fast queue updates)
+
+DevOps
+
+Docker
+
+GitHub Actions (CI/CD)
+
+AWS / Azure (Deployment)
+
+## 🎯 Key Features
+
+- Doctor-wise queue management
+- Live token tracking
+- Reception-based token generation
+- Scalable and low-cost
+- Mobile and desktop friendly
+- Designed specifically for Tier-2/3 cities
+
+## 🚀 Future Enhancements
+
+- WhatsApp/SMS token reminders
+- Estimated waiting time
+- Multi-language support
+- Analytics dashboard for hospitals
+- Appointment pre-booking
+
+## 🏁 Conclusion
+
+This project focuses on practical impact over complexity.
+It helps hospitals move from manual queues to digital queues using a simple, affordable, and scalable solution.
+
+A small digital change that creates a big improvement in patient experience.

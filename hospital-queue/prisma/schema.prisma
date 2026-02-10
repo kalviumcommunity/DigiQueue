@@ -11,6 +11,8 @@ model Doctor {
   id             Int     @id @default(autoincrement())
   name           String
   specialization String
+  userId         String  @unique
+  password       String
   queues         Queue[]
 }
 
