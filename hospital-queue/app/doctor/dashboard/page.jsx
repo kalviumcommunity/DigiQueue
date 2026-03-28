@@ -81,6 +81,13 @@ export default function DoctorDashboard() {
     return () => clearInterval(interval);
   }, [doctorId, refreshData]);
 
+  const handleLogout = () => {
+    localStorage.removeItem("doctorId");
+    localStorage.removeItem("doctorName");
+    localStorage.removeItem("doctorUserId");
+    router.push("/doctor/login");
+  };
+
   // Call Next Patient
   const callNext = async () => {
     if (isCallingNext || isMarkingDone) return;

@@ -54,5 +54,28 @@ export async function POST(request) {
     data: { name, specialization, userId, password },
   });
 
-  return NextResponse.json(doctor, { status: 201 });
+  if (existingDoctor) {
+    return NextResponse.json(
+      { error: "User ID already exists" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const doctor = await prisma.doctor.create({
+      data: { name, specialization, userId, password },
+    });
+
+    return NextResponse.json({
+      id: doctor.id,
+      name: doctor.name,
+      specialization: doctor.specialization,
+      userId: doctor.userId,
+    }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to create doctor" },
+      { status: 500 }
+    );
+  }
 }
