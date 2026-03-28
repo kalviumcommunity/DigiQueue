@@ -1,40 +1,82 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function AdminLogin() {
   const router = useRouter();
+  const [userId, setUserId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Temporary login (no auth yet)
-    router.push("/admin/dashboard");
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        return;
+      }
+
+      router.push("/admin/dashboard");
+      router.refresh();
+    } catch {
+      setError("Unable to login right now. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="border p-6 rounded w-80">
-        <h2 className="text-xl font-bold mb-4">
-          Hospital Admin Login
-        </h2>
+    <div className="portal-center">
+      <div className="card" style={{ maxWidth: '420px', width: '100%' }}>
+        <section className="page-hero" style={{ marginBottom: '16px' }}>
+          <h1>Hospital Admin Login</h1>
+          <p>Secure access for reception and queue management.</p>
+        </section>
 
-        <input
-          type="text"
-          placeholder="Username"
-          className="border w-full mb-3 p-2"
-        />
+        <form className="form" onSubmit={handleLogin}>
+          {error ? <p className="alert alert-warn">{error}</p> : null}
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="border w-full mb-4 p-2"
-        />
+          <input
+            type="text"
+            placeholder="User ID"
+            className="input"
+            value={userId}
+            onChange={(event) => setUserId(event.target.value)}
+            autoComplete="username"
+            required
+          />
 
-        <button
-          onClick={handleLogin}
-          className="bg-blue-600 text-white w-full p-2 rounded"
-        >
-          Login
-        </button>
+          <input
+            type="password"
+            placeholder="Password"
+            className="input"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            required
+          />
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Login"}
+          </button>
+        </form>
       </div>
     </div>
   );

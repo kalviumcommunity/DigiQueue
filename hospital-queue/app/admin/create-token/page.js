@@ -4,79 +4,137 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 
 export default function CreateToken() {
+  const [doctors, setDoctors] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState("");
   const [queue, setQueue] = useState(null);
   const [patientName, setPatientName] = useState("");
   const [phone, setPhone] = useState("");
   const [generatedToken, setGeneratedToken] = useState(null);
-  const [doctorId, setDoctorId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedDoctorId = localStorage.getItem("activeDoctorId");
-    setDoctorId(storedDoctorId);
+    apiRequest("/api/doctors")
+      .then(setDoctors)
+      .catch(() => setDoctors([]));
+  }, []);
 
-    if (!storedDoctorId) {
+  useEffect(() => {
+    setGeneratedToken(null);
+    if (!selectedDoctor) {
       setQueue(null);
       return;
     }
 
-    apiRequest(`/api/queues?doctorId=${storedDoctorId}`)
-      .then((data) => setQueue(data))
-      .catch(() => alert("Queue not started"));
-  }, []);
+    apiRequest(`/api/queues?doctorId=${selectedDoctor}`)
+      .then((data) => setQueue(data || null))
+      .catch(() => setQueue(null));
+  }, [selectedDoctor]);
 
-  const handleCreateToken = async () => {
-    if (!patientName) return alert("Enter patient name");
-    if (!queue?.id) return alert("Queue not started");
-
-    const res = await apiRequest("/api/tokens", "POST", {
-      queueId: queue.id,
-      patientName,
-      phone,
-    });
-
-    setGeneratedToken(res.tokenNo);
+  const handleStartQueue = async () => {
+    if (!selectedDoctor) return alert("Select a doctor first");
+    try {
+      const q = await apiRequest("/api/queues", "POST", { doctorId: Number(selectedDoctor) });
+      setQueue(q);
+      alert("Queue started");
+    } catch (err) {
+      alert(`Failed to start queue: ${err.message}`);
+    }
   };
 
-  if (!doctorId) {
-    return <p className="p-6">Select a doctor and start a queue first.</p>;
-  }
+  const handleCreateToken = async () => {
+    if (!selectedDoctor) return alert("Select a doctor first");
+    if (!patientName) return alert("Enter patient name");
+    if (!queue || !queue.isActive) return alert("Queue is not active for selected doctor");
 
-  if (!queue || !queue.isActive) {
-    return <p className="p-6">Start the queue first.</p>;
-  }
+    try {
+      setLoading(true);
+      const res = await apiRequest("/api/tokens", "POST", {
+        queueId: queue.id,
+        patientName,
+        phone,
+      });
+
+      setGeneratedToken(res.tokenNo);
+      setPatientName("");
+      setPhone("");
+    } catch (err) {
+      alert(`Failed to create token: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="p-6 max-w-md">
-      <h2 className="text-xl font-bold mb-4">
-        Create Token (Reception)
-      </h2>
+    <div>
+      <section className="page-hero">
+        <h1>Create Token (Reception)</h1>
+        <p>Issue a token for walk-in patients and keep the line moving.</p>
+      </section>
 
-      <input
-        placeholder="Patient Name"
-        className="border w-full p-2 mb-3"
-        value={patientName}
-        onChange={(e) => setPatientName(e.target.value)}
-      />
+      <section className="card" style={{ maxWidth: '520px' }}>
+        <div className="form">
+          <div>
+            <label className="label">Select Doctor</label>
+            <select
+              className="input"
+              value={selectedDoctor}
+              onChange={(e) => setSelectedDoctor(e.target.value)}
+            >
+              <option value="">-- Select Doctor --</option>
+              {doctors.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name} — {d.specialization}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <input
-        placeholder="Phone Number"
-        className="border w-full p-2 mb-4"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-      />
+          {!selectedDoctor ? (
+            <div className="alert alert-info">Please select a doctor to continue.</div>
+          ) : !queue ? (
+            <div>
+              <div className="alert alert-warn">No active queue for this doctor.</div>
+              <button onClick={handleStartQueue} className="btn btn-primary" style={{ marginTop: '12px' }}>
+                Start Queue
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="alert alert-info">
+                Queue #{queue.id} — Current Token: {queue.currentToken}
+              </div>
 
-      <button
-        onClick={handleCreateToken}
-        className="bg-green-600 text-white px-4 py-2 rounded"
-      >
-        Generate Token
-      </button>
+              <input
+                placeholder="Patient Name"
+                className="input"
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+              />
 
-      {generatedToken && (
-        <div className="mt-4 p-3 border bg-green-50">
-          <strong>Token Number:</strong> {generatedToken}
+              <input
+                placeholder="Phone Number"
+                className="input"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+
+              <button
+                onClick={handleCreateToken}
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                {loading ? 'Generating...' : 'Generate Token'}
+              </button>
+
+              {generatedToken && (
+                <div className="alert alert-success">
+                  <strong>Token Number:</strong> {generatedToken}
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
+      </section>
     </div>
   );
 }

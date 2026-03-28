@@ -20,7 +20,6 @@ export async function GET() {
     name: doctor.name,
     specialization: doctor.specialization,
     userId: doctor.userId,
-    password: "****", // Don't expose actual password
     queueActive: doctor.queues.length > 0,
   }));
 
@@ -51,9 +50,8 @@ export async function POST(request) {
     );
   }
 
-  // Check if userId already exists
-  const existingDoctor = await prisma.doctor.findUnique({
-    where: { userId },
+  const doctor = await prisma.doctor.create({
+    data: { name, specialization, userId, password },
   });
 
   if (existingDoctor) {

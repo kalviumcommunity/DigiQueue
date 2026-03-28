@@ -15,7 +15,6 @@ export default function DoctorManagement() {
     password: "",
   });
   const [editingId, setEditingId] = useState(null);
-  const router = useRouter();
 
   // Fetch all doctors
   const fetchDoctors = async () => {
@@ -86,118 +85,118 @@ export default function DoctorManagement() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Doctor Management</h1>
+    <div>
+      <section className="page-hero">
+        <h1>Doctor Management</h1>
+        <p>Add, edit, and maintain doctor profiles and credentials.</p>
+      </section>
 
-      {/* Add/Edit Form */}
-      {showForm && (
-        <div className="bg-gray-100 p-4 rounded mb-6">
-          <h2 className="text-2xl font-bold mb-4">{editingId ? "Edit Doctor" : "Add New Doctor"}</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {showForm ? (
+        <section className="card" style={{ marginBottom: '20px' }}>
+          <h2>{editingId ? "Edit Doctor" : "Add New Doctor"}</h2>
+          <form onSubmit={handleSubmit} className="form">
             <input
               type="text"
               placeholder="Doctor Name"
-              className="border p-2 rounded"
+              className="input"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
             <input
               type="text"
               placeholder="Specialization"
-              className="border p-2 rounded"
+              className="input"
               value={formData.specialization}
               onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
             />
             <input
               type="text"
               placeholder="User ID (for login)"
-              className="border p-2 rounded"
+              className="input"
               value={formData.userId}
               onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
             />
             <input
               type="password"
               placeholder="Password"
-              className="border p-2 rounded"
+              className="input"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 col-span-full"
-            >
-              {editingId ? "Update Doctor" : "Add Doctor"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowForm(false);
-                setEditingId(null);
-                setFormData({ name: "", specialization: "", userId: "", password: "" });
-              }}
-              className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 col-span-full"
-            >
-              Cancel
-            </button>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button type="submit" className="btn btn-primary">
+                {editingId ? "Update Doctor" : "Add Doctor"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingId(null);
+                  setFormData({ name: "", specialization: "", userId: "", password: "" });
+                }}
+                className="btn btn-ghost"
+              >
+                Cancel
+              </button>
+            </div>
           </form>
-        </div>
-      )}
-
-      {/* Add Doctor Button */}
-      {!showForm && (
+        </section>
+      ) : (
         <button
           onClick={() => setShowForm(true)}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mb-6"
+          className="btn btn-primary"
+          style={{ marginBottom: '20px' }}
         >
           + Add Doctor
         </button>
       )}
 
-      {/* Doctors Table */}
       {loading ? (
-        <p>Loading doctors...</p>
+        <div className="alert alert-info">Loading doctors...</div>
       ) : doctors.length === 0 ? (
-        <p className="text-gray-600">No doctors added yet.</p>
+        <div className="alert alert-info">No doctors added yet.</div>
       ) : (
-        <table className="w-full border-collapse border border-gray-300">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="border p-3 text-left">Name</th>
-              <th className="border p-3 text-left">Specialization</th>
-              <th className="border p-3 text-left">User ID</th>
-              <th className="border p-3 text-left">Status</th>
-              <th className="border p-3 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {doctors.map((doctor) => (
-              <tr key={doctor.id} className="hover:bg-gray-50">
-                <td className="border p-3">{doctor.name}</td>
-                <td className="border p-3">{doctor.specialization}</td>
-                <td className="border p-3 font-mono text-sm">{doctor.userId}</td>
-                <td className="border p-3">
-                  <span className={`px-3 py-1 rounded text-sm ${doctor.queueActive ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-800"}`}>
-                    {doctor.queueActive ? "Queue Active" : "Idle"}
-                  </span>
-                </td>
-                <td className="border p-3 text-center">
-                  <button
-                    onClick={() => handleEdit(doctor)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(doctor.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="card">
+          <table className="portal-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>User ID</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {doctors.map((doctor) => (
+                <tr key={doctor.id}>
+                  <td>{doctor.name}</td>
+                  <td>{doctor.specialization}</td>
+                  <td>{doctor.userId}</td>
+                  <td>
+                    <span
+                      className={`status-pill ${
+                        doctor.queueActive ? "status-active" : "status-inactive"
+                      }`}
+                    >
+                      {doctor.queueActive ? "Queue Active" : "Idle"}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button onClick={() => handleEdit(doctor)} className="btn btn-ghost">
+                        Edit
+                      </button>
+                      <button onClick={() => handleDelete(doctor.id)} className="btn btn-danger">
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

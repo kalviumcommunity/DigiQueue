@@ -4,38 +4,32 @@ import Link from "next/link";
 
 export default function AdminDashboard() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">
-        Admin / Reception Dashboard
-      </h1>
+    <div>
+      <section className="page-hero">
+        <h1>Admin / Reception Dashboard</h1>
+        <p>Coordinate patient flow, doctor availability, and reception tokens.</p>
+      </section>
 
-      <ul className="space-y-3">
-        <li>
-          <Link href="/admin/add-doctor" className="text-blue-600">
-            ➤ Add Doctor
+      <div className="care-strip">
+        Patient-first operations: keep queues calm and visits moving.
+      </div>
+
+      <section className="card">
+        <div className="card-grid">
+          <Link className="portal-tile" href="/admin/doctors">
+            <h3>Doctor Management</h3>
+            <p>Manage doctor profiles and login credentials.</p>
           </Link>
-        </li>
-        <li>
-          <Link href="/admin/doctors" className="text-blue-600">
-            ➤ View Doctors
+          <Link className="portal-tile" href="/admin/queue">
+            <h3>Queue Management</h3>
+            <p>Keep patient lines balanced and queues visible.</p>
           </Link>
-        </li>
-        <li>
-          <Link href="/admin/start-queue" className="text-blue-600">
-            ➤ Start Queue
+          <Link className="portal-tile" href="/admin/create-token">
+            <h3>Create Token</h3>
+            <p>Issue patient tokens quickly at reception.</p>
           </Link>
-        </li>
-        <li>
-          <Link href="/admin/queue-status" className="text-blue-600">
-            ➤ View Queue Status
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/create-token" className="text-blue-600">
-            ➤ Create Token (Reception)
-          </Link>
-        </li>
-      </ul>
+        </div>
+      </section>
     </div>
   );
 }

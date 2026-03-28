@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
  * Update a doctor
  */
 export async function PUT(request, { params }) {
-  const { id } = params;
+  const { id } = await params;
   const doctorId = parseInt(id);
 
   let body;
@@ -70,16 +70,43 @@ export async function PUT(request, { params }) {
  * Delete a doctor
  */
 export async function DELETE(request, { params }) {
-  const { id } = params;
+  const { id } = await params;
   const doctorId = parseInt(id);
 
+  if (!Number.isFinite(doctorId)) {
+    return NextResponse.json({ error: "Invalid doctor id" }, { status: 400 });
+  }
+
   try {
-    await prisma.doctor.delete({
+    const doctor = await prisma.doctor.findUnique({
       where: { id: doctorId },
+      select: { id: true },
+    });
+
+    if (!doctor) {
+      return NextResponse.json({ error: "Doctor not found" }, { status: 404 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.token.deleteMany({
+        where: {
+          queue: {
+            doctorId,
+          },
+        },
+      });
+
+      await tx.queue.deleteMany({
+        where: { doctorId },
+      });
+
+      await tx.doctor.delete({
+        where: { id: doctorId },
+      });
     });
 
     return NextResponse.json({ message: "Doctor deleted successfully" });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete doctor" },
       { status: 500 }

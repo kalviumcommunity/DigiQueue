@@ -50,64 +50,49 @@ export default function DoctorLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">Doctor Login</h1>
-        
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
+    <div className="portal-center">
+      <div className="card" style={{ maxWidth: '460px', width: '100%' }}>
+        <section className="page-hero" style={{ marginBottom: '16px' }}>
+          <h1>Doctor Login</h1>
+          <p>Access your queue dashboard and manage patient flow.</p>
+        </section>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">User ID:</label>
+        {error && <div className="alert alert-warn">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="form">
+          <div>
+            <label className="label">User ID</label>
             <input
               type="text"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               placeholder="Enter your user ID"
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+              className="input"
               disabled={loading}
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 font-bold mb-2">Password:</label>
+          <div>
+            <label className="label">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+              className="input"
               disabled={loading}
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition disabled:bg-gray-400"
-          >
+          <button type="submit" disabled={loading} className="btn btn-primary">
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
-        <p className="text-center text-gray-600 mt-4 text-sm">
-          Contact admin if you forgot your credentials
+        <p style={{ marginTop: '16px', color: 'var(--muted)', fontSize: '14px' }}>
+          Contact admin if you forgot your credentials.
         </p>
       </div>
-    </div>
-  );
-}
-          />
-        </div>
-
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-
-        <button type="submit">Login</button>
-      </form>
     </div>
   );
 }
