@@ -9,9 +9,9 @@ import { redis } from "@/lib/redis";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { doctorId } = body;
+    const doctorId = Number(body?.doctorId);
 
-    if (!doctorId) {
+    if (!Number.isInteger(doctorId) || doctorId <= 0) {
       return NextResponse.json(
         { error: "doctorId is required" },
         { status: 400 }
@@ -60,7 +60,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const doctorId = Number(searchParams.get("doctorId"));
 
-    if (!doctorId) {
+    if (!Number.isInteger(doctorId) || doctorId <= 0) {
       return NextResponse.json(
         { error: "doctorId query param required" },
         { status: 400 }

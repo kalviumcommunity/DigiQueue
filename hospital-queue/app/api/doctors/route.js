@@ -19,6 +19,7 @@ export async function GET() {
     id: doctor.id,
     name: doctor.name,
     specialization: doctor.specialization,
+    userId: doctor.userId,
     queueActive: doctor.queues.length > 0,
   }));
 
@@ -40,17 +41,17 @@ export async function POST(request) {
     );
   }
   
-  const { name, specialization } = body;
+  const { name, specialization, userId, password } = body;
 
-  if (!name || !specialization) {
+  if (!name || !specialization || !userId || !password) {
     return NextResponse.json(
-      { error: "Name and specialization required" },
+      { error: "Name, specialization, userId, and password required" },
       { status: 400 }
     );
   }
 
   const doctor = await prisma.doctor.create({
-    data: { name, specialization },
+    data: { name, specialization, userId, password },
   });
 
   return NextResponse.json(doctor, { status: 201 });

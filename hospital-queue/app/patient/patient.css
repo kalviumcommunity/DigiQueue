@@ -1,0 +1,402 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --paper: #f6f2ea;
+  --paper-2: #f0e7db;
+  --ink: #1f2933;
+  --muted: #5f6c7b;
+  --accent: #e76f51;
+  --accent-2: #2a9d8f;
+  --accent-3: #264653;
+  --card: #ffffff;
+  --shadow: 0 18px 40px rgba(38, 70, 83, 0.12);
+  --shadow-soft: 0 10px 24px rgba(38, 70, 83, 0.08);
+}
+
+.patient-shell {
+  min-height: 100vh;
+  background: radial-gradient(circle at top right, #ffe8d6 0%, #f6f2ea 45%),
+    radial-gradient(circle at 10% 20%, #e3f2ee 0%, rgba(227, 242, 238, 0) 55%),
+    linear-gradient(180deg, #f6f2ea 0%, #f0e7db 100%);
+  color: var(--ink);
+  font-family: 'Plus Jakarta Sans', 'Noto Sans', sans-serif;
+}
+
+.patient-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px;
+  border-bottom: 1px solid rgba(38, 70, 83, 0.08);
+  background: rgba(246, 242, 234, 0.9);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand-mark {
+  font-family: 'Fraunces', 'Georgia', serif;
+  font-size: 24px;
+  letter-spacing: 0.6px;
+  color: var(--accent-3);
+}
+
+.brand-sub {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+
+.patient-nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(38, 70, 83, 0.15);
+  background: var(--card);
+  color: var(--accent-3);
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+  white-space: nowrap;
+}
+
+.profile-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.profile-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  min-width: 220px;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(38, 70, 83, 0.12);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.profile-menu:hover .profile-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.profile-popover-title {
+  font-weight: 700;
+  color: var(--accent-3);
+}
+
+.profile-popover-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.profile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffe8d6;
+  color: var(--accent-3);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.nav-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(38, 70, 83, 0.15);
+  background: var(--card);
+  color: var(--accent-3);
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.logout-btn {
+  background: rgba(231, 111, 81, 0.12);
+  border-color: rgba(231, 111, 81, 0.2);
+  color: #9b3e26;
+}
+
+.nav-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(38, 70, 83, 0.12);
+  background: #fff5ef;
+}
+
+.patient-main {
+  padding: 32px 30px 60px;
+}
+
+.page-hero {
+  display: grid;
+  gap: 12px;
+  max-width: 700px;
+  margin-bottom: 28px;
+  animation: rise 0.6s ease-out;
+}
+
+.page-hero h1 {
+  font-family: 'Fraunces', 'Georgia', serif;
+  font-size: clamp(30px, 3vw, 38px);
+  margin: 0;
+}
+
+.page-hero p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(38, 70, 83, 0.08);
+  animation: rise 0.6s ease-out;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.card h2,
+.card h3 {
+  margin-top: 0;
+  font-family: 'Fraunces', 'Georgia', serif;
+  letter-spacing: 0.2px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(42, 157, 143, 0.12);
+  color: var(--accent-2);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.status-active {
+  background: rgba(42, 157, 143, 0.16);
+  color: var(--accent-2);
+}
+
+.status-inactive {
+  background: rgba(231, 111, 81, 0.12);
+  color: var(--accent);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--accent-3);
+  color: white;
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent-3);
+  border: 1px solid rgba(38, 70, 83, 0.2);
+}
+
+.btn-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.label {
+  font-weight: 600;
+  color: var(--accent-3);
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(38, 70, 83, 0.2);
+  background: white;
+  font-size: 14px;
+}
+
+.alert {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-weight: 500;
+}
+
+.alert-info {
+  background: rgba(42, 157, 143, 0.1);
+  border-color: rgba(42, 157, 143, 0.2);
+  color: #17645b;
+}
+
+.alert-warn {
+  background: rgba(231, 111, 81, 0.12);
+  border-color: rgba(231, 111, 81, 0.2);
+  color: #9b3e26;
+}
+
+.alert-success {
+  background: rgba(38, 70, 83, 0.08);
+  border-color: rgba(38, 70, 83, 0.15);
+  color: var(--accent-3);
+}
+
+.token-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: #ffe8d6;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent-3);
+}
+
+.queue-meta {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  min-width: 240px;
+  max-width: 320px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(38, 70, 83, 0.12);
+  box-shadow: var(--shadow);
+  background: var(--card);
+  color: var(--accent-3);
+  z-index: 40;
+  animation: rise 0.4s ease-out;
+}
+
+.toast-info {
+  border-color: rgba(42, 157, 143, 0.2);
+  background: rgba(42, 157, 143, 0.08);
+}
+
+.toast-warn {
+  border-color: rgba(231, 111, 81, 0.2);
+  background: rgba(231, 111, 81, 0.08);
+}
+
+.fade-in {
+  animation: rise 0.6s ease-out;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .patient-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .nav-right {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .patient-main {
+    padding: 24px 18px 50px;
+  }
+
+  .page-hero h1 {
+    font-size: 30px;
+  }
+}

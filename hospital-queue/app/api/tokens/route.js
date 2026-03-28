@@ -8,10 +8,11 @@ import { prisma } from "@/lib/prisma";
 export async function POST(request) {
   const body = await request.json();
   const { queueId, patientName, phone } = body;
+  const normalizedPhone = String(phone || "").trim();
 
-  if (!queueId || !patientName) {
+  if (!queueId || !patientName || !normalizedPhone) {
     return NextResponse.json(
-      { error: "queueId and patientName required" },
+      { error: "queueId, patientName and phone are required" },
       { status: 400 }
     );
   }
@@ -24,6 +25,25 @@ export async function POST(request) {
     return NextResponse.json(
       { error: "Queue is not active" },
       { status: 400 }
+    );
+  }
+
+  // Prevent issuing multiple active tokens for the same doctor and phone number.
+  const existingActiveToken = await prisma.token.findFirst({
+    where: {
+      phone: normalizedPhone,
+      status: { in: ["WAITING", "IN_PROGRESS"] },
+      queue: {
+        doctorId: queue.doctorId,
+        isActive: true,
+      },
+    },
+  });
+
+  if (existingActiveToken) {
+    return NextResponse.json(
+      { error: "This mobile number already has an active token for this doctor" },
+      { status: 409 }
     );
   }
 
@@ -40,7 +60,7 @@ export async function POST(request) {
       queueId,
       tokenNo: nextTokenNo,
       patientName,
-      phone,
+      phone: normalizedPhone,
     },
   });
 
